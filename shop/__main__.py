@@ -30,21 +30,38 @@ def restore(file, no_catch):
     Shop.load_from_backup(file, no_catch)
 
 @click.command()
+@click.option('-n', help='how many revisions back', default=1)
+def revert(n):
+    shop.revert(n)
+
+@click.command()
+@click.option('-n', help='how many revisions forward', default=1)
+def advance(n):
+    shop.advance(n)
+
+@click.command()
 @click.option('--tree', help='Whether the display should be a tree', is_flag=True)
 def inspect(tree):
     shop.inspect(not tree)
 
+@click.command()
+def debug():
+    shop.debug()
+
 cli.add_command(init)
 cli.add_command(save)
-cli.add_command(inspect)
 cli.add_command(backup)
 cli.add_command(restore)
+cli.add_command(revert)
+cli.add_command(advance)
+cli.add_command(inspect)
+cli.add_command(debug)
 
 def main():
     try:
         cli()
     except Failure as e:
-        spinner = e.args[1] if len(e) > 1 else Halo()
+        spinner = e.args[1] if len(e.args) > 1 else Halo()
         spinner.fail(e.args[0])
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ from halo import Halo
 from rich import print
 from rich.table import Table
 from rich.tree import Tree
+from rich.text import Text
 from datetime import datetime
 from PyInquirer import prompt
 import shutil
@@ -16,13 +17,20 @@ class Shop:
         self.reasons = reasons
         self.time = time
         self.i = len(snapshots)
+        self._l = len(snapshots)
 
-    def save(self, reason='Saved files'):
+    def debug(self):
+        print(self.__dict__)
+
+    def save(self, reason=None):
+        if reason is None:
+            reason = prompt([{'type': 'input', 'name': 'commit_msg', 'message': 'Please enter a commit message'}])
         with Halo(text='Saving', spinner='dots') as sp:
             self.snapshots.append(Snapshot('.'))
             self.reasons.append(reason)
             self.time.append(datetime.now())
-            self.i += 1
+            self._l += 1
+            self.i = self._l - 1
             self.save_to_fs()
             sp.succeed('Saved a snapshot!')
 
@@ -55,17 +63,31 @@ class Shop:
                 shutil.copy('.shop', filename)
                 sp.succeed(f'A copy of .shop is now in {filename}')
 
-    @classmethod
-    def load_from_backup(klass, backup='shop', catch=True):
-        answers = prompt([{'type': 'confirm', 'name': 'overwrite', 'message': f'Any files already in this directory will be overwritten. Is that all right?', 'default': True}])
-        if not answers['overwrite']: return
-        spinner = Halo('Loading snapshot').start()
-        klass.load(backup, catch).snapshots[-1].restore(spinner)
-        spinner.start().succeed('Snapshot loaded!')
-
     def save_to_fs(self):
         with open('.shop', 'wb') as f:
             pickle.dump(self, f)
+
+    def change_place(self, n):
+        spinner = Halo('Updating internal state').start()
+        self.i += n
+        spinner.succeed('Internal state updated').start('Loading snapshot')
+        self.snapshots[self.i].restore(spinner)
+        self.save_to_fs()
+        spinner.succeed('Snapshot loaded!')
+
+    def revert(self, n=1):
+        self.change_place(-n)
+
+    def advance(self, n=1):
+        self.change_place(n)
+
+    @classmethod
+    def load_from_backup(klass, backup='shop', catch=True, snapshot_n=-1):
+        answers = prompt([{'type': 'confirm', 'name': 'overwrite', 'message': f'Any files already in this directory will be overwritten. Is that all right?', 'default': False}])
+        if not answers['overwrite']: return
+        spinner = Halo('Loading snapshot').start()
+        klass.load(backup, catch).snapshots[snapshot_n].restore(spinner)
+        spinner.start().succeed('Snapshot loaded!')
 
     @classmethod
     def init(klass):

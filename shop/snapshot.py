@@ -41,7 +41,8 @@ class Snapshot:
             if spinner is not None: 
                 spinner.start('Erasing current directory')
                 for x in Path('.').iterdir():
-                    try: x.unlink()
+                    try: 
+                        if x.name[0] != '.': x.unlink()
                     except PermissionError: Halo().warn(f'{x} could not be deleted')
                 spinner.succeed('Current directory cleaned!')
             try: (Path('.') / Path(self.name)).mkdir()

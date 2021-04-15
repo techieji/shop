@@ -5,7 +5,7 @@ goals; goals do not include, **speed**, **size**, or, lest you divulge secrets w
 this humble tool, **security**. Maybe in the future these goals will be added; for now,
 the answer is no.
 
-Shop currently has a very limited set of commands: `init`, `save`, `backup`, and `restore`.
+Shop currently has a very limited set of commands: `init`, `save`, `backup`, `restore`, and `inspect`.
 Further information will be added later.
 
 Shop stores all of its information in one file: `.shop`. If this becomes unwieldy, I'll try to
